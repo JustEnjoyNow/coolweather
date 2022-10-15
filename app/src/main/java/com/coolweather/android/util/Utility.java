@@ -5,14 +5,19 @@ import android.text.TextUtils;
 import com.coolweather.android.db.City;
 import com.coolweather.android.db.County;
 import com.coolweather.android.db.Province;
+import com.coolweather.android.gson.Weather;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.sql.Wrapper;
+
 public class Utility {
-    public static boolean handleProvinceResponse(String response){
-        if(!TextUtils.isEmpty(response)){
+    public static boolean handleProvinceResponse(String response) {
+        if (!TextUtils.isEmpty(response)) {
             try {
                 JSONArray allProvince = new JSONArray(response);
                 for (int i = 0; i < allProvince.length(); i++) {
@@ -22,7 +27,7 @@ public class Utility {
                     province.setProvinceCode(provinceObject.getInt("id"));
                     province.save();
                 }
-                return  true;
+                return true;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -32,8 +37,8 @@ public class Utility {
         return false;
     }
 
-    public static boolean handleCityResponse(String response,int provinceId){
-        if(!TextUtils.isEmpty(response)){
+    public static boolean handleCityResponse(String response, int provinceId) {
+        if (!TextUtils.isEmpty(response)) {
             try {
                 JSONArray allCities = new JSONArray(response);
                 for (int i = 0; i < allCities.length(); i++) {
@@ -44,7 +49,7 @@ public class Utility {
                     city.setProvinceId(provinceId);
                     city.save();
                 }
-                return  true;
+                return true;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -53,23 +58,35 @@ public class Utility {
         return false;
     }
 
-    public static boolean handleCountyResponse(String response,int cityId){
-        if(!TextUtils.isEmpty(response)){
+    public static boolean handleCountyResponse(String response, int cityId) {
+        if (!TextUtils.isEmpty(response)) {
             try {
                 JSONArray allCounties = new JSONArray(response);
                 for (int i = 0; i < allCounties.length(); i++) {
                     JSONObject countyObject = allCounties.getJSONObject(i);
                     County county = new County();
-                   county.setCountyName(countyObject.getString("name"));
-                   county.setCityId(cityId);
-                   county.setWeatherId(countyObject.getString("weather_id"));
-                   county.save();
+                    county.setCountyName(countyObject.getString("name"));
+                    county.setCityId(cityId);
+                    county.setWeatherId(countyObject.getString("weather_id"));
+                    county.save();
                 }
-                return  true;
+                return true;
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
         return false;
+    }
+
+    public static Weather handleWeatherResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            String weatherContent = jsonArray.getJSONObject(0).toString();
+            return new Gson().fromJson(weatherContent, Weather.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
